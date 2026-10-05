@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador de Carreira de Futebol</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: #0d0d0d;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 10px;
+    }
+
+    #app {
+      width: 100%;
+      max-width: 900px;
+      background-color: #141414;
+      border: 2px solid #222;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+      position: relative;
+    }
+
+    /* Cabeçalho de Navegação */
+    .nav-header {
+      text-align: center;
+      font-size: 22px;
+      font-weight: bold;
+      text-transform: lowercase;
+      margin-bottom: 20px;
+      letter-spacing: 1px;
+    }
+
+    .nav-header span {
+      cursor: pointer;
+      color: #666;
+      transition: color 0.3px;
+    }
+
+    .nav-header span.active {
+      color: #f3c614;
+    }
+
+    /* Painel do Jogador */
+    .player-card {
+      background: #1c1c1c;
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid #2a2a2a;
+      margin-bottom: 20px;
+    }
+
+    .player-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 8px;
+    }
+
+    .badge-img {
+      width: 45px;
+      height: 45px;
+      background: #f3c614;
+      color: #000;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .player-name {
+      font-size: 28px;
+      font-weight: 900;
+      color: #ffffff;
+      letter-spacing: 1px;
+    }
+
+    .player-name span {
+      color: #f3c614;
+    }
+
+    .player-sub {
+      color: #888;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    /* Botão Amarelo Principal */
+    .btn-center-container {
+      display: flex;
+      justify-content: center;
+      margin: 25px 0;
+    }
+
+    .btn-yellow-main {
+      background: linear-gradient(180deg, #fce043 0%, #e1b107 100%);
+      border: none;
+      width: 200px;
+      height: 50px;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(243, 198, 20, 0.3);
+      transition: transform 0.1s, box-shadow 0.2s;
+    }
+
+    .btn-yellow-main:active {
+      transform: scale(0.96);
+    }
+
+    /* Footer do Menu Principal */
+    .main-footer {
+      display: flex;
+      justify-content: space-between;
+      border-top: 1px solid #282828;
+      padding-top: 15px;
+      font-size: 13px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      color: #888;
+    }
+
+    .main-footer div {
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .main-footer div:hover {
+      color: #ffffff;
+    }
+
+    /* Grelha de Botões (Minha Carreira) */
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 15px;
+    }
+
+    .grid-item {
+      background: #1a1a1a;
+      border: 1px solid #282828;
+      border-radius: 10px;
+      padding: 15px;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .grid-item:hover {
+      background: #222222;
+      border-color: #f3c614;
+    }
+
+    .grid-item h3 {
+      font-size: 16px;
+      text-transform: uppercase;
+      color: #ffffff;
+      margin-bottom: 5px;
+    }
+
+    .grid-item p {
+      font-size: 12px;
+      color: #777;
+    }
+
+    /* Modais / Pop-ups */
+    .modal-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(4px);
+      border-radius: 16px;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      padding: 20px;
+    }
+
+    .modal-box {
+      background: #181818;
+      border: 1px solid #333;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 500px;
+      padding: 20px;
+      position: relative;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      color: #888;
+      font-size: 20px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .modal-close:hover {
+      color: #fff;
+    }
+
+    .modal-title {
+      font-size: 20px;
+      color: #f3c614;
+      text-transform: uppercase;
+      margin-bottom: 15px;
+      border-bottom: 1px solid #282828;
+      padding-bottom: 8px;
+    }
+
+    /* Estilo do Overall e Atributos */
+    .ovr-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 18px;
+      margin-bottom: 15px;
+    }
+    .ovr-bronze { background: #8c6239; color: #fff; }
+    .ovr-prata { background: #a0a0a0; color: #000; }
+    .ovr-dourado { background: #f3c614; color: #000; }
+
+    .attr-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      background: #222;
+      padding: 8px 12px;
+      border-radius: 6px;
+    }
+
+    .btn-add {
+      background: #f3c614;
+      border: none;
+      color: #000;
+      font-weight: bold;
+      width: 25px;
+      height: 25px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    /* Estilo de Itens de Loja e Ações */
+    .action-item {
+      background: #222;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .btn-yellow-sm {
+      background: #f3c614;
+      border: none;
+      color: #000;
+      font-weight: bold;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .section-subtitle {
+      color: #f3c614;
+      font-size: 14px;
+      margin: 15px 0 8px 0;
+      font-weight: bold;
+    }
+
+    .text-sm {
+      font-size: 12px;
+      color: #aaa;
+    }
+
+    /* Tela de Jogos / Simulação */
+    .games-history {
+      margin-top: 15px;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .history-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px;
+      background: #1a1a1a;
+      border-bottom: 1px solid #282828;
+      font-size: 13px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+
+<div id="app">
+  <!-- Cabeçalho Principal -->
+  <div class="nav-header">
+    <span id="tab-inicio" class="active" onclick="switchTab('inicio')">início</span> - 
+    <span id="tab-jogos" onclick="switchTab('jogos')">jogos</span>
+  </div>
+
+  <!-- ABA INÍCIO -->
+  <div id="view-inicio">
+    <div class="player-card">
+      <div class="player-header">
+        <div class="badge-img" id="club-badge">GFD</div>
+        <div class="player-name" id="display-name">SAMIR GOMES <span>#23</span></div>
+      </div>
+      <div class="player-sub" id="display-season">Temporada 1, idade: 16</div>
+
+      <!-- Botão Amarelo Central -->
+      <div class="btn-center-container">
+        <button class="btn-yellow-main" onclick="openModal('modal-evolucao')"></button>
+      </div>
+
+      <!-- Rodapé -->
+      <div class="main-footer">
+        <div onclick="toggleCareerMenu()">MINHA CARREIRA</div>
+        <div onclick="simulateSeason()">SIMULAR RESTO DA TEMPORADA »</div>
+      </div>
+    </div>
+
+    <!-- Grelha Minha Carreira -->
+    <div id="career-grid" class="grid-container hidden">
+      <div class="grid-item" onclick="openModal('modal-evolucao')">
+        <h3>Evolução</h3>
+        <p>Como seus atributos cresceram, ano a ano</p>
+      </div>
+      <div class="grid-item" onclick="openModal('modal-vida')">
+        <h3>Vida</h3>
+        <p>Seu estilo de vida, gastos e patrocínios</p>
+      </div>
+      <div class="grid-item" onclick="openModal('modal-carreira')">
+        <h3>Carreira</h3>
+        <p>Seu contrato, clube e estatísticas históricas</p>
+      </div>
+      <div class="grid-item" onclick="openModal('modal-trofeus')">
+        <h3>Troféus</h3>
+        <p>Tudo o que você levantou na carreira</p>
+      </div>
+      <div class="grid-item" onclick="openModal('modal-noticias')">
+        <h3>Notícias</h3>
+        <p>O que aconteceu no mundo e no futebol</p>
+      </div>
+      <div class="grid-item" onclick="openModal('modal-selecao')">
+        <h3>Seleção</h3>
+        <p>Seu lugar e convocações na seleção nacional</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABA JOGOS -->
+  <div id="view-jogos" class="hidden">
+    <div class="player-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <div>
+          <span id="ovr-badge-main" class="ovr-badge ovr-bronze">OVR: 70</span>
+          <h2 id="games-player-name" style="font-size: 20px;">SAMIR GOMES</h2>
+          <p id="games-player-info" class="text-sm">🇵🇹 Portugal | 16 anos | Clube: Sporting</p>
+        </div>
+        <div style="text-align: right;">
+          <p class="text-sm">Valor: <b style="color: #4caf50;" id="market-value">€ 1.5M</b></p>
+        </div>
+      </div>
+
+      <p class="section-subtitle">Propostas de Clubes Interessados:</p>
+      <div id="proposals-list" class="action-item">
+        <span id="proposal-text">Nenhuma proposta no momento.</span>
+        <button class="btn-yellow-sm" onclick="acceptTransfer()">Aceitar</button>
+      </div>
+
+      <div style="text-align: center; margin: 20px 0;">
+        <button class="btn-yellow-sm" style="padding: 10px 25px; font-size: 14px;" onclick="simulateSeason()">AVANÇAR (Simular Temporada)</button>
+      </div>
+
+      <p class="section-subtitle">Histórico de Temporadas:</p>
+      <div class="games-history" id="season-history">
+        <!-- Linhas históricas geradas aqui -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL EVOLUÇÃO -->
+  <div id="modal-evolucao" class="modal-overlay">
+    <div class="modal-box">
+      <span class="modal-close" onclick="closeModal('modal-evolucao')">&times;</span>
+      <div class="modal-title">Evolução de Atributos</div>
+      <div>
+        <span id="ovr-modal-badge" class="ovr-badge ovr-bronze">OVERALL: 70</span>
+        <p class="text-sm" style="margin-bottom: 15px;">Pontos Disponíveis: <b id="available-points" style="color: #f3c614;">10</b></p>
+      </div>
+
+      <div id="attributes-list">
+        <!-- Atributos gerados por JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL VIDA -->
+  <div id="modal-vida" class="modal-overlay">
+    <div class="modal-box">
+      <span class="modal-close" onclick="closeModal('modal-vida')">&times;</span>
+      <div class="modal-title">Estilo de Vida & Finanças</div>
+      <p style="font-size: 18px; margin-bottom: 15px;">Dinheiro: <b style="color: #4caf50;" id="money-display">125 M</b></p>
+
+      <p class="section-subtitle">Carros</p>
+      <div class="action-item"><span>Carro Simples (12 M)</span><button class="btn-yellow-sm" onclick="buyItem(12)">Comprar</button></div>
+      <div class="action-item"><span>Carro Luxo (32 M)</span><button class="btn-yellow-sm" onclick="buyItem(32)">Comprar</button></div>
+      <div class="action-item"><span>Carro Super Desportivo (52 M)</span><button class="btn-yellow-sm" onclick="buyItem(52)">Comprar</button></div>
+
+      <p class="section-subtitle">Casas</p>
+      <div class="action-item"><span>Apartamento (0.002 M)</span><button class="btn-yellow-sm" onclick="buyItem(0.002)">Comprar</button></div>
+      <div class="action-item"><span>Casa Simples (8 M)</span><button class="btn-yellow-sm" onclick="buyItem(8)">Comprar</button></div>
+      <div class="action-item"><span>Casa Moderna (14 M)</span><button class="btn-yellow-sm" onclick="buyItem(14)">Comprar</button></div>
+      <div class="action-item"><span>Casa Luxuosa (32 M)</span><button class="btn-yellow-sm" onclick="buyItem(32)">Comprar</button></div>
+      <div class="action-item"><span>Mansão (41 M)</span><button class="btn-yellow-sm" onclick="buyItem(41)">Comprar</button></div>
+
+      <p class="section-subtitle">Investimentos</p>
+      <div class="action-item"><span>Criptomoedas</span><button class="btn-yellow-sm" onclick="invest('cripto')">Investir</button></div>
+      <div class="action-item"><span>Sua Fundação</span><button class="btn-yellow-sm" onclick="invest('fundacao')">Investir</button></div>
+      <div class="action-item"><span>Fundos de Investimentos</span><button class="btn-yellow-sm" onclick="invest('fundos')">Investir</button></div>
+    </div>
+  </div>
+
+  <!-- MODAL CARREIRA -->
+  <div id="modal-carreira" class="modal-overlay">
+    <div class="modal-box">
+      <span class="modal-close" onclick="closeModal('modal-carreira')">&times;</span>
+      <div class="modal-title">Gestão de Carreira</div>
+
+      <div class="action-item" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+        <b>RENOVAÇÃO</b>
+        <span class="text-sm">Negociar novos termos com o clube</span>
+        <button class="btn-yellow-sm" onclick="openRenovacao()">Renovar</button>
+      </div>
+
+      <div class="action-item" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+        <b>PEDIR GOLOS POR JOGO</b>
+        <span class="text-sm">Definir metas de golos com o técnico</span>
+        <button class="btn-yellow-sm" onclick="alert('Meta de golos prometida ao treinador!')">Prometer</button>
+      </div>
+
+      <div class="action-item" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+        <b>EXIGIR STATUS DE ESTRELA 🌟</b>
+        <span class="text-sm">Solicitar papel de protagonista</span>
+        <button class="btn-yellow-sm" onclick="requestStarStatus()">Exigir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL TROFÉUS -->
+  <div id="modal-trofeus" class="modal-overlay">
+    <div class="modal-box">
+      <span class="modal-close" onclick="closeModal('modal-trofeus')">&times;</span>
+      <div class="modal-title">Galeria de Troféus</div>
+      <div id="trophies-list">
+        <p class="text-sm">Nenhum troféu conquistado ainda. Os troféus da época surgem na temporada seguinte!</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL NOTÍCIAS -->
+  <div id="modal-noticias" class="modal-overlay">
+    <div class="modal-box">
+      <span class="modal-close" onclick="closeModal('modal-noticias')">&times;</span>
+      <div class="modal-title">Notícias do Futebol</div>
+      <div id="news-content">
+        <p class="text-sm">As notícias da última temporada aparecerão aqui.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL SELEÇÃO -->
+  <div id="modal-selecao" class="modal-overlay">
+    <div class="modal-box">
+      <span class="modal-close" onclick="closeModal('modal-selecao')">&times;</span>
+      <div class="modal-title">Seleção Nacional</div>
+      <div id="national-stats">
+        <p>Jogos: <b id="nat-games">0</b></p>
+        <p>Golos: <b id="nat-goals">0</b></p>
+        <p>Assistências: <b id="nat-assists">0</b></p>
+        <p>Títulos: <b id="nat-titles">0</b></p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Estado do Jogo
+  const player = {
+    name: "SAMIR GOMES",
+    number: "23",
+    age: 16,
+    season: 1,
+    nationality: "Português 🇵🇹",
+    club: "Sporting",
+    money: 125,
+    points: 10,
+    attributes: {
+      vel: 70,
+      dri: 70,
+      fin: 70,
+      pas: 70,
+      def: 70,
+      fis: 70
+    },
+    trophies: [],
+    nationalStats: { games: 0, goals: 0, assists: 0, titles: 0 },
+    history: [],
+    lastNews: "A nova promessa do futebol prepara-se para estrear esta temporada!",
+    pendingInvestment: false
+  };
+
+  const attrNames = {
+    vel: "Velocidade",
+    dri: "Drible",
+    fin: "Finalização",
+    pas: "Passe",
+    def: "Defesa",
+    fis: "Físico"
+  };
+
+  // Inicialização
+  window.onload = () => {
+    renderAttributes();
+    updateUI();
+  };
+
+  function calculateOVR() {
+    const attrs = Object.values(player.attributes);
+    const sum = attrs.reduce((a, b) => a + b, 0);
+    return Math.round(sum / attrs.length);
+  }
+
+  function getOVRClass(ovr) {
+    if (ovr <= 76) return "ovr-bronze";
+    if (ovr <= 79) return "ovr-prata";
+    return "ovr-dourado";
+  }
+
+  function updateUI() {
+    const ovr = calculateOVR();
+    const ovrClass = getOVRClass(ovr);
+
+    // Header & Info
+    document.getElementById("display-name").innerHTML = `${player.name} <span>#${player.number}</span>`;
+    document.getElementById("display-season").innerText = `Temporada ${player.season}, idade: ${player.age}`;
+    document.getElementById("games-player-name").innerText = `${player.name} #${player.number}`;
+    document.getElementById("games-player-info").innerText = `${player.nationality} | ${player.age} anos | Clube: ${player.club}`;
+    
+    // Badges OVR
+    const modalBadge = document.getElementById("ovr-modal-badge");
+    modalBadge.innerText = `OVERALL: ${ovr}`;
+    modalBadge.className = `ovr-badge ${ovrClass}`;
+
+    const mainBadge = document.getElementById("ovr-badge-main");
+    mainBadge.innerText = `OVR: ${ovr}`;
+    mainBadge.className = `ovr-badge ${ovrClass}`;
+
+    document.getElementById("available-points").innerText = player.points;
+    document.getElementById("money-display").innerText = player.money + " M";
+
+    // Propostas de Transferência
+    const targetClub = ovr > 80 ? "Real Madrid" : (ovr > 75 ? "Benfica" : "Braga");
+    document.getElementById("proposal-text").innerText = `O ${targetClub} quer contratar-te!`;
+
+    // Notícias
+    document.getElementById("news-content").innerHTML = `<p class="text-sm">${player.lastNews}</p>`;
+
+    // Seleção
+    document.getElementById("nat-games").innerText = player.nationalStats.games;
+    document.getElementById("nat-goals").innerText = player.nationalStats.goals;
+    document.getElementById("nat-assists").innerText = player.nationalStats.assists;
+    document.getElementById("nat-titles").innerText = player.nationalStats.titles;
+  }
+
+  function renderAttributes() {
+    const container = document.getElementById("attributes-list");
+    container.innerHTML = "";
+    for (let key in player.attributes) {
+      const row = document.createElement("div");
+      row.className = "attr-row";
+      row.innerHTML = `
+        <span>${attrNames[key]}: <b>${player.attributes[key]}</b></span>
+        <button class="btn-add" onclick="upgradeAttr('${key}')">+</button>
+      `;
+      container.appendChild(row);
+    }
+  }
+
+  function upgradeAttr(attr) {
+    if (player.points > 0 && player.attributes[attr] < 93) {
+      player.attributes[attr]++;
+      player.points--;
+      renderAttributes();
+      updateUI();
+    } else if (player.attributes[attr] >= 93) {
+      alert("Atributo já atingiu o limite máximo de 93!");
+    } else {
+      alert("Sem pontos de evolução disponíveis!");
+    }
+  }
+
+  function switchTab(tab) {
+    document.getElementById("tab-inicio").className = tab === 'inicio' ? 'active' : '';
+    document.getElementById("tab-jogos").className = tab === 'jogos' ? 'active' : '';
+    document.getElementById("view-inicio").className = tab === 'inicio' ? '' : 'hidden';
+    document.getElementById("view-jogos").className = tab === 'jogos' ? '' : 'hidden';
+  }
+
+  function toggleCareerMenu() {
+    const grid = document.getElementById("career-grid");
+    grid.classList.toggle("hidden");
+  }
+
+  function openModal(id) {
+    document.getElementById(id).style.display = "flex";
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).style.display = "none";
+  }
+
+  function buyItem(price) {
+    if (player.money >= price) {
+      player.money -= price;
+      updateUI();
+      alert("Compra realizada com sucesso!");
+    } else {
+      alert("Saldo insuficiente!");
+    }
+  }
+
+  function invest(type) {
+    player.pendingInvestment = true;
+    alert("Investimento realizado! Receberás o retorno na próxima temporada.");
+  }
+
+  function requestStarStatus() {
+    const ovr = calculateOVR();
+    if (ovr >= 80) {
+ alert("A diretoria ACEITOU o teu pedido! Agora és a estrela da equipa. 🌟");
+    } else {
+      alert("A diretoria RECUSOU o teu pedido. Precisas de um Overall mais alto.");
+    }
+  }
+
+  function openRenovacao() {
+    const sal = prompt("Digita o teu salário pretendido (em M):", "5");
+    if (sal) {
+      alert(`Proposta de ${sal}M/ano enviada! A diretoria vai analisar.`);
+    }
+  }
+
+  function acceptTransfer() {
+    const ovr = calculateOVR();
+    const newClub = ovr > 80 ? "Real Madrid" : (ovr > 75 ? "Benfica" : "Braga");
+    player.club = newClub;
+    document.getElementById("club-badge").innerText = newClub.substring(0, 3).toUpperCase();
+    updateUI();
+    alert(`Transferido para o ${newClub} com sucesso!`);
+  }
+
+  function simulateSeason() {
+    if (player.age >= 39) {
+      alert("Atingiste os 39 anos e te aposentaste automaticamente! Parabéns por esta grande carreira!");
+      return;
+    }
+
+    const ovr = calculateOVR();
+    
+    // Gerar estatísticas da época com base no OVR
+    const games = Math.floor(Math.random() * 10) + 30;
+    const goals = Math.floor((ovr / 100) * (Math.random() * 25 + 10));
+    const assists = Math.floor((ovr / 100) * (Math.random() * 15 + 5));
+
+    // Troféus e Seleção
+    let titleWon = "";
+    if (ovr > 82 && Math.random() > 0.4) {
+      titleWon = "Champions League";
+      player.trophies.push(`Champions League (T${player.season})`);
+    } else if (ovr > 75 && Math.random() > 0.5) {
+      titleWon = "Liga Nacional";
+      player.trophies.push(`Liga Nacional (T${player.season})`);
+    }
+
+    if (ovr > 78) {
+      player.nationalStats.games += Math.floor(Math.random() * 5 + 3);
+      player.nationalStats.goals += Math.floor(Math.random() * 3);
+      player.nationalStats.assists += Math.floor(Math.random() * 2);
+    }
+
+    // Atualizar Notícia
+    player.lastNews = `Na Temporada ${player.season}, ${player.name} marcou ${goals} golos e fez ${assists} assistências pelo ${player.club}!`;
+
+    // Atualizar Histórico
+    const historyRow = document.createElement("div");
+    historyRow.className = "history-row";
+    historyRow.innerHTML = `
+      <span>T${player.season} (${player.age}a) - ${player.club}</span>
+      <span>OVR: ${ovr} | 🎮 ${games} ⚽ ${goals} 🅰️ ${assists} ${titleWon ? '🏆 ' + titleWon : ''}</span>
+    `;
+    document.getElementById("season-history").prepend(historyRow);
+
+    // Troféus Modal
+    const trophiesList = document.getElementById("trophies-list");
+    if (player.trophies.length > 0) {
+      trophiesList.innerHTML = player.trophies.map(t => `<p>🏆 ${t}</p>`).join("");
+    }
+
+    // Pontos de Evolução ganhos no ano (até 50)
+    const earnedPoints = Math.min(50, Math.floor((goals + assists) * 1.2) + 10);
+    player.points += earnedPoints;
+
+    // Retorno do investimento
+    if (player.pendingInvestment) {
+      player.money += 10;
+      player.pendingInvestment = false;
+    }
+
+    // Avançar Idade e Época
+    player.season++;
+    player.age++;
+
+    updateUI();
+    renderAttributes();
+    alert(`Época ${player.season - 1} concluída!\n- Golos: ${goals}\n- Assistências: ${assists}\n- Ganhaste +${earnedPoints} Pontos de Evolução!`);
+  }
+</script>
+
+</body>
+</html>
